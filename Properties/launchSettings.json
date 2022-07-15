@@ -1,0 +1,25 @@
+{
+  "profiles": {
+    "WSL": {
+      "commandName": "WSL2",
+      "environmentVariables": {},
+      "distributionName": ""
+    },
+    "run-backup -d delray": {
+      "commandName": "Project",
+      "commandLineArgs": "run-backup -d delray"
+    },
+    "show-config -d *all": {
+      "commandName": "Project",
+      "commandLineArgs": "show-config -d *all"
+    },
+    "run-backup -d rpwin10Git": {
+      "commandName": "Project",
+      "commandLineArgs": "run-backup -d rpWin10Git"
+    },
+    "run-backup -d win10rp-1809": {
+      "commandName": "Project",
+      "commandLineArgs": "run-backup -d win10rp-1809"
+    }
+  }
+}
