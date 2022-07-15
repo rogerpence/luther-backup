@@ -4,6 +4,7 @@ using LutherBackup.Models;
 using LutherBackup.Logic;
 using static LutherBackup.ConsoleHelpers;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 var builder = new ConfigurationBuilder();
 builder.SetBasePath(Directory.GetCurrentDirectory())
@@ -15,7 +16,13 @@ var coconaBuilder = CoconaApp.CreateBuilder();
 
 //coconaBuilder.Services.AddTransient()
 
+
 var app = coconaBuilder.Build();
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .WriteTo.File("logs/LutherBackup.log", rollingInterval: RollingInterval.Month)
+    .CreateLogger();
 
 Console.Clear();
 

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using LutherBackup.Models;
 using CliWrap;
 using static LutherBackup.ConsoleHelpers;
+using Serilog;
 
 namespace LutherBackup.Logic;
 public class BackupManager
@@ -15,7 +16,7 @@ public class BackupManager
 
     public BackupManager(IConfiguration config)
     {
-        this.config = config;   
+        this.config = config;
     }
 
     public async Task Run(string sourceDevice)
@@ -35,6 +36,10 @@ public class BackupManager
 
     public async Task RunBackupForConfig(BackupConfig backupConfig)
     {
+        Log.Information($" *****  ");
+        Log.Information($" *****  ");
+        Log.Information($"Starting backup for device: {backupConfig.DeviceInfo.Device}");
+
         ConfigurationValues cv = new();
          
         WriteMessage($"Initiating backup for source device: {backupConfig.DeviceInfo.Device}");
@@ -49,6 +54,7 @@ public class BackupManager
 
                 if (backupConfig.DeviceInfo.DriveLetter == Constants.DRIVE_NOT_AVAILABLE)
                 {
+                    Log.Warning($"No backup performed for: {sourceDevice}. Source device drive not found.");
                     WriteError($"  No backup performed for: {sourceDevice}. Source device drive not found.");
                     return;
                 }
@@ -57,7 +63,6 @@ public class BackupManager
             }
         }
     }
-
     private async Task BackUpForTargetDevice(BackupConfig backupConfig, string targetDevice, string targetDrive, string sourceDir, string sourceDevice)
     {
         string args = backupConfig.RoboCopyArgs;
@@ -77,11 +82,13 @@ public class BackupManager
 
         if (targetDrive == Constants.DRIVE_NOT_AVAILABLE)
         {
+            Log.Warning($"No backup performed for: {sourceDevice} on target device {targetDevice}. Target device drive not found.");
             WriteError($"  No backup performed for: {sourceDevice} on target device {targetDevice}. Target device drive not found.");
             return;
         }
         else
         {
+            Log.Information($"Backing up {targetDir} on {sourceDevice} to {targetDevice}");
             WriteSuccess($"  Backing up {targetDir} on {sourceDevice} to {targetDevice}");
             WriteWarning($"  Backup started at {DateTime.Now.ToString("hh:mm:ss")}");
         }
@@ -89,6 +96,8 @@ public class BackupManager
         string logFile = Path.Join(targetDrive, Constants.BACKUP_ROOT_FOLDER, $"{sourceDevice}-{targetDir}.log");
         string RoboLogFile = $@"{logarg}{logFile}";
         string RoboArgs= $@" ""{fullSourceDir}"" ""{fullTargetDir}"" {args} {excludeFiles} {excludeFolders} {RoboLogFile}";
+        Log.Information($"Using: robocopy {RoboArgs}");
+
         //WriteMessage($" with command RoboCopy {RoboArgs} ");
 
         try        
@@ -104,13 +113,16 @@ public class BackupManager
             if (Constants.RoboCopyStatusCodes.ContainsKey(result.ExitCode))
             {
                 statusMessage = Constants.RoboCopyStatusCodes[result.ExitCode];
+                Log.Information($"Finished with status code: {result.ExitCode}.\n  {statusMessage}");
                 WriteSuccess($"  Finished with status code: {result.ExitCode}.\n  {statusMessage}");
             }
             else
             {
                 statusMessage = "At least one failure occurred--check the RoboCopy error log.";
+                Log.Error($"A failure occurred: {result.ExitCode}.\n  Check log--this is probably not an issue.\n  {statusMessage}");
                 WriteWarning($"  A failure occurred: {result.ExitCode}.\n  Check log--this is probably not an issue.\n  {statusMessage}");
             }
+            Log.Information($"Backup finished at {DateTime.Now.ToString("hh:mm:ss")}");
             WriteWarning($"  Backup finished at {DateTime.Now.ToString("hh:mm:ss")}");
 
         }

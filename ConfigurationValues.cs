@@ -32,6 +32,7 @@ public class ConfigurationValues
                 DeviceInfo = deviceInfo,
             };
 
+            // Unique list of backup devices and drive letters.
             foreach (var backupDevice in deviceInfo.TargetDevice)
             {
                 if (! TargetDeviceDrives.ContainsKey(backupDevice))
